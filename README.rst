@@ -38,15 +38,24 @@ uses. On macOS, we will always build a universal 32 and 64 bit Intel binary.
 Installation with an external FreeType library (the default)
 ------------------------------------------------------------
 
-Install just the pure Python library and let it find a system-wide installed
-FreeType at runtime.
+Install just the pure Python library and let `freetype-py` find a system-wide
+installed FreeType at runtime. It will search several predetermined locations
+(varies per platform) for a suitable FreeType library.
+
+You may also specify a non-standard/custom directory to search by setting the
+`FREETYPEPY_LIBRARY_DIR` environment variable prior to importing. The value
+should be a path to the directory containing the FreeType library you wish to
+use.
 
 Mac users
 ~~~~~~~~~
 
 Freetype should be already installed on your system. If not, either install it
 using `homebrew <http://brew.sh>`_ or compile it and place the library binary
-file in '/usr/local/lib'.
+file in '/usr/local/lib'. If your build/install process installs the
+freetype.dylib somewhere other than /usr/local/lib, you may specify that
+location through the environment variable `DYLD_LIBRARY_PATH` or
+`FREETYPEPY_LIBRARY_DIR`.
 
 Linux users
 ~~~~~~~~~~~
