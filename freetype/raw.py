@@ -8,48 +8,33 @@ Freetype raw API
 
 This is the raw ctypes freetype binding.
 '''
+from ctypes import CDLL, c_ushort, c_char_p
 import os
-import platform
-from ctypes import *
-import ctypes.util
 
 import freetype
 from freetype.ft_types import *
 from freetype.ft_enums import *
 from freetype.ft_errors import *
 from freetype.ft_structs import *
+from freetype.libutil import find_ftlibrary
 
-# First, look for a bundled FreeType shared object on the top-level of the
-# installed freetype-py module.
-system = platform.system()
-if system == 'Windows':
-    library_name = 'libfreetype.dll'
-elif system == 'Darwin':
-    library_name = 'libfreetype.dylib'
+# check whether custom dir is specified and if it exists
+customdir = os.environ.get('FREETYPEPY_LIBRARY_DIR')
+if customdir and os.path.isdir(customdir):
+    filename = find_ftlibrary(customdir)
 else:
-    library_name = 'libfreetype.so'
+    # use freetype-py local dir
+    filename = find_ftlibrary(os.path.dirname(freetype.__file__))
 
-filename = os.path.join(os.path.dirname(freetype.__file__), library_name)
-
-# If no bundled shared object is found, look for a system-wide installed one.
-if not os.path.exists(filename):
-    # on windows all ctypes does when checking for the library
-    # is to append .dll to the end and look for an exact match
-    # within any entry in PATH.
-    filename = ctypes.util.find_library('freetype')
-
-    if filename is None:
-        if platform.system() == 'Windows':
-            # Check current working directory for dll as ctypes fails to do so
-            filename = os.path.join(os.path.realpath('.'), "freetype.dll")
-        else:
-            filename = library_name
+if not filename:
+    raise RuntimeError("Could not find a suitable FreeType library.")
 
 try:
-    _lib = ctypes.CDLL(filename)
-except (OSError, TypeError):
+    _lib = CDLL(filename)
+except (OSError, TypeError) as exc:
     _lib = None
-    raise RuntimeError('Freetype library not found')
+    raise RuntimeError('There was a problem loading the FreeType '
+                       'library at %s: %s' % (filename, str(exc)))
 
 FT_Init_FreeType       = _lib.FT_Init_FreeType
 FT_Done_FreeType       = _lib.FT_Done_FreeType
